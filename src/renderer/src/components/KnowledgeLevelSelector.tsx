@@ -1,0 +1,6 @@
+export type KnowledgeLevel = 'first-race' | 'basics' | 'advanced'
+const levels: { id: KnowledgeLevel; title: string; description: string }[] = [{ id: 'first-race', title: 'First race ever', description: 'Explain DRS, slipstream, pole position and the basics.' }, { id: 'basics', title: 'I know the basics', description: 'Skip the obvious stuff. Explain strategy and deeper concepts.' }, { id: 'advanced', title: 'I know my shit', description: 'Only show advanced context.' }]
+function KnowledgeLevelSelector({ value, onChange }: { value: KnowledgeLevel; onChange: (value: KnowledgeLevel) => void }): React.JSX.Element {
+  return <section className="selector-section knowledge-section"><h2>How much F1 do you know?</h2><div className="knowledge-list" role="radiogroup">{levels.map((level, index) => <button aria-checked={value === level.id} className={`knowledge-option ${value === level.id ? 'knowledge-option--selected' : ''}`} key={level.id} onClick={() => onChange(level.id)} role="radio" type="button"><span className="option-index">0{index + 1}</span><span className="option-copy"><strong>{level.title}</strong><small>{level.description}</small></span><span className="option-radio" /></button>)}</div></section>
+}
+export default KnowledgeLevelSelector
