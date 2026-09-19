@@ -68,6 +68,14 @@ Open the Formula 1 hub to see the **Rookie Brief** for the next Grand Prix.
 
 Use **Alerts** to follow race events or specific drivers.
 
+## Known limitation
+
+Some Formula 1 data is loaded from public APIs with free-tier rate limits.
+
+If a section appears incomplete or some data is temporarily missing, please wait a few seconds and reopen Rookie. Rapidly switching between data-heavy sections may occasionally trigger an API rate limit.
+
+This does not affect the core audio → transcription → explanation demo flow.
+
 ## Tech
 
 Electron · React · TypeScript · Azure Speech · Microsoft Foundry · OpenF1 · Jolpica
