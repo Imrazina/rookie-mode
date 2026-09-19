@@ -1,77 +1,73 @@
 # Rookie
 
-Sports, translated.
+**Sports, translated.**
 
-Rookie listens to the sports commentary you are already hearing and explains unfamiliar sports language at the moment it is said.
+Rookie listens to the sports commentary you're already hearing and explains unfamiliar sports language the moment it is said.
 
-## Why Rookie
+It is designed for people who want to enjoy sports without already knowing every term, strategy, or rule.
 
-Sports broadcasts often assume viewers already understand jargon, race terminology, strategy language, and rules. That creates a barrier for new fans. Rookie translates broadcast language in real time so viewers can follow the action without leaving it.
+## What Rookie does
 
-## How it works
+- Explains sports terminology in real time
+- Adds contextual AI explanations based on what is happening right now
+- Gives a newcomer-friendly pre-race Rookie Brief
+- Provides race alerts and followed-driver updates
+- Shows Formula 1 stats without leaving the app
 
-System audio → Azure Speech → sports term detection → instant glossary explanation → contextual AI explanation
+## Try Rookie
 
-## Features
+Download the latest build from the **Releases** section of this repository.
 
-- Real-time broadcast terminology explanations
-- A newcomer-friendly Rookie Brief before a race
-- Race alerts when you are not actively watching
-- Followed-driver position, pit-stop, and penalty alerts
-- Contextual Formula 1 statistics
-- A real-audio TRY DEMO flow
+Available builds:
 
-## Demo
+- macOS — Apple Silicon
+- Windows — x64
 
-TRY DEMO opens a prepared sports clip, but Rookie still listens to the real system audio and sends that audio through the production speech-recognition and explanation pipeline. It is not a simulated transcript.
+Installation instructions are included in the release description.
 
-The demo URL is supplied through `DEMO_VIDEO_URL`. Public source distributions intentionally do not contain the private judge URL or credentials.
+## How to use it
+
+1. Open Rookie.
+2. Choose **Formula 1**.
+3. Press **TRY DEMO** to try Rookie with a prepared race clip.
+4. Grant the requested system-audio / screen-capture permission.
+5. Allow notifications if you want Rookie race alerts outside the app.
+
+Rookie listens to the **real system audio** playing on your computer.
+
+When the commentary mentions an unfamiliar Formula 1 term, Rookie detects it and shows an explanation directly over what you're watching.
+
+The demo uses the same real speech-recognition and AI pipeline as normal viewing — the transcript and explanation events are not simulated.
+
+### Permissions
+
+Rookie may request OS permissions the first time you use it.
+
+**macOS**
+- Allow **Screen & System Audio Recording** when requested so Rookie can hear the broadcast.
+- Allow **Notifications** to receive race alerts.
+- If you change a permission in System Settings, macOS may require Rookie to be restarted.
+
+**Windows**
+- Allow screen/system-audio capture if Windows asks for permission.
+- Allow Rookie notifications if prompted so race alerts can appear outside the app.
+
+Rookie does not intentionally save captured audio or screen video to disk.
+
+### While watching
+
+- Keep Rookie running while your broadcast or video is playing.
+- Explanations appear automatically when Rookie detects supported terminology.
+- Press `⌃⇧R` on macOS or `Ctrl+Shift+R` on Windows to stop listening.
+
+### Before the race
+
+Open the Formula 1 hub to see the **Rookie Brief** for the next Grand Prix.
+
+### When you're not watching
+
+Use **Alerts** to follow race events or specific drivers.
 
 ## Tech
 
-Electron, React, TypeScript, Azure Speech, Microsoft Foundry with gpt-4.1-mini, OpenF1, and Jolpica.
-
-## Platforms
-
-- macOS: implemented and tested during development.
-- Windows: support implemented; runtime verification pending.
-
-## Privacy
-
-Rookie processes captured system audio in memory for speech recognition and does not intentionally save captured audio to disk. The required display video track is discarded and is not rendered or recorded.
-
-## Development
-
-Requirements: Node.js and npm.
-
-```bash
-npm install
-cp .env.example .env
-npm run dev
-```
-
-Fill `.env` with your own development configuration. `OPENF1_ACCESS_TOKEN` is optional when the unauthenticated OpenF1 API is sufficient.
-
-Useful commands:
-
-```bash
-npm run typecheck
-npm run build
-npm run package:mac
-npm run package:win
-```
-
-## Judge builds
-
-Judge packages bundle a private local `.env.judge` inside the distributable. The installed app loads it automatically; judges do not need environment variables, API keys, Node.js, or a terminal.
-
-```bash
-cp .env.example .env.judge
-# Fill .env.judge with temporary hackathon credentials and the demo URL.
-npm run package:judge:mac
-npm run package:judge:win
-```
-
-`.env.judge` is gitignored and must never be committed. Temporary judge credentials are distributed inside the Electron package and must be rotated after judging.
-
-The macOS package is unsigned and not notarized. If Gatekeeper blocks it, right-click Rookie and choose **Open**, or use **System Settings → Privacy & Security → Open Anyway**.
+Electron · React · TypeScript · Azure Speech · Microsoft Foundry · OpenF1 · Jolpica
