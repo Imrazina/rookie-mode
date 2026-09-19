@@ -1,0 +1,6 @@
+extends: ./electron-builder.yml
+extraResources:
+  - from: .
+    to: .
+    filter:
+      - .env.judge
