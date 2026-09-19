@@ -9,6 +9,7 @@ import type {
 const DEFAULT_BASE_URL = 'https://api.jolpi.ca/ergast/f1'
 const REQUEST_TIMEOUT_MS = 12_000
 const USER_AGENT = 'Rookie/1.0.0'
+const RESULTS_PAGE_SIZE = 100
 
 type RawDriver = {
   givenName?: string
@@ -56,6 +57,9 @@ type RawRace = {
 
 type RawJolpicaResponse = {
   MRData?: {
+    limit?: string
+    offset?: string
+    total?: string
     StandingsTable?: {
       StandingsLists?: Array<{
         DriverStandings?: RawDriverStanding[]
@@ -158,6 +162,30 @@ function normalizeRaces(
   }).sort((left, right) => left.round - right.round)
 }
 
+function mergeRacePages(pages: RawJolpicaResponse[]): RawJolpicaResponse {
+  const racesByRound = new Map<string, RawRace>()
+  for (const page of pages) {
+    for (const race of page.MRData?.RaceTable?.Races ?? []) {
+      const round = race.round?.trim()
+      if (!round) continue
+      const existing = racesByRound.get(round)
+      if (!existing) {
+        racesByRound.set(round, {
+          ...race,
+          ...(race.Results ? { Results: [...race.Results] } : {}),
+          ...(race.QualifyingResults ? { QualifyingResults: [...race.QualifyingResults] } : {})
+        })
+        continue
+      }
+      if (race.Results?.length) existing.Results = [...(existing.Results ?? []), ...race.Results]
+      if (race.QualifyingResults?.length) {
+        existing.QualifyingResults = [...(existing.QualifyingResults ?? []), ...race.QualifyingResults]
+      }
+    }
+  }
+  return { MRData: { RaceTable: { Races: [...racesByRound.values()] } } }
+}
+
 export class JolpicaF1Service {
   private readonly cache = new Map<string, F1StatsDataset>()
   private readonly inFlight = new Map<string, Promise<F1StatsDataset>>()
@@ -200,8 +228,8 @@ export class JolpicaF1Service {
 
     const [scheduleResult, resultsResult, qualifyingResult] = await Promise.allSettled([
       this.request(`${season}/`, 100),
-      this.request(`${season}/results/`, 2_000),
-      this.request(`${season}/qualifying/`, 2_000)
+      this.requestAllRacePages(`${season}/results/`),
+      this.requestAllRacePages(`${season}/qualifying/`)
     ])
     if (scheduleResult.status === 'rejected') throw scheduleResult.reason
     const emptyResponse: RawJolpicaResponse = {}
@@ -217,8 +245,35 @@ export class JolpicaF1Service {
   }
 
   private async request(path: string, limit: number): Promise<RawJolpicaResponse> {
+    return this.requestPage(path, limit, 0)
+  }
+
+  private async requestAllRacePages(path: string): Promise<RawJolpicaResponse> {
+    const pages: RawJolpicaResponse[] = []
+    let offset = 0
+    while (true) {
+      const page = await this.requestPage(path, RESULTS_PAGE_SIZE, offset)
+      pages.push(page)
+
+      const metadata = page.MRData
+      const total = numberOrNull(metadata?.total)
+      const pageLimit = numberOrNull(metadata?.limit)
+      const pageOffset = numberOrNull(metadata?.offset)
+      if (total === null || pageLimit === null || pageOffset === null || pageOffset + pageLimit >= total) break
+      if ((metadata?.RaceTable?.Races?.length ?? 0) === 0) {
+        throw new Error('Jolpica pagination ended before all race records were loaded')
+      }
+      const nextOffset = pageOffset + pageLimit
+      if (nextOffset <= offset) throw new Error('Jolpica pagination did not advance')
+      offset = nextOffset
+    }
+    return mergeRacePages(pages)
+  }
+
+  private async requestPage(path: string, limit: number, offset: number): Promise<RawJolpicaResponse> {
     const url = new URL(path, `${this.baseUrl}/`)
     url.searchParams.set('limit', String(limit))
+    if (offset > 0) url.searchParams.set('offset', String(offset))
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
     try {

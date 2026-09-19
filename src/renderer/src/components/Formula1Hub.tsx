@@ -24,9 +24,10 @@ import {
 import { useF1Data } from '../domain/f1DataContext'
 import DemoAction from './DemoAction'
 import Formula1StatsPage from './Formula1StatsPage'
+import Formula1VocabularyPage from './Formula1VocabularyPage'
 import { f1Glossary } from '../domain/f1Glossary'
 
-type HubPage = 'watch' | 'stats' | 'alerts'
+type HubPage = 'watch' | 'stats' | 'alerts' | 'vocabulary'
 type AlertReplayStatus = 'idle' | 'loading' | 'ready' | 'replaying' | 'error'
 
 type AlertReplayCounts = {
@@ -461,13 +462,12 @@ function HubSidebar({ page, onBack, onNavigate }: {
       <p>FORMULA 1</p>
     </div>
     <nav aria-label="Formula 1">
-      {(['watch', 'stats', 'alerts'] as HubPage[]).map((item) => (
+      {(['watch', 'stats', 'alerts', 'vocabulary'] as HubPage[]).map((item) => (
         <button className={page === item ? 'is-active' : ''} key={item} onClick={() => onNavigate(item)} type="button">
           {item.toUpperCase()}
         </button>
       ))}
     </nav>
-    <button className="hub-settings" disabled type="button">SETTINGS</button>
   </aside>
 }
 
@@ -504,7 +504,7 @@ function BriefUnavailable({ loading }: { loading: boolean }): React.JSX.Element 
   return <p className="hub-unavailable">{loading ? 'Preparing Rookie brief…' : 'Brief temporarily unavailable.'}</p>
 }
 
-function WatchPage({ data, brief, briefLoading, loading, unavailable, preferences, setPreferences }: {
+function WatchPage({ data, brief, briefLoading, loading, unavailable, preferences, setPreferences, onOpenVocabulary }: {
   data: F1HubData
   brief: F1RaceBrief | null
   briefLoading: boolean
@@ -512,6 +512,7 @@ function WatchPage({ data, brief, briefLoading, loading, unavailable, preference
   unavailable: boolean
   preferences: AlertPreferences
   setPreferences: React.Dispatch<React.SetStateAction<AlertPreferences>>
+  onOpenVocabulary: (term: string) => void
 }): React.JSX.Element {
   const current = data.currentOrNext
   const isLive = !unavailable && current?.status === 'live'
@@ -555,7 +556,7 @@ function WatchPage({ data, brief, briefLoading, loading, unavailable, preference
         <article><h3>WHY THIS RACE MATTERS</h3>{brief?.whyThisRaceMatters ? <p className="brief-copy">{brief.whyThisRaceMatters}</p> : <BriefUnavailable loading={briefLoading} />}</article>
         <article><h3>WHAT TO WATCH</h3>{brief?.whatToWatch.length ? <ol className="brief-list">{brief.whatToWatch.map((item) => <li key={item}>{item}</li>)}</ol> : <BriefUnavailable loading={briefLoading} />}</article>
         <article><h3>DRIVERS TO WATCH</h3>{brief?.driversToWatch.length ? <ul className="brief-drivers">{brief.driversToWatch.map((driver) => <li key={driver.driver}><strong>{driver.driver}</strong><span>{driver.reason}</span></li>)}</ul> : <BriefUnavailable loading={briefLoading} />}</article>
-        <article><h3>TERMS YOU'LL PROBABLY HEAR</h3><ul className="brief-terms">{glossaryTerms.map((term) => <li key={term}>{term}</li>)}</ul></article>
+        <article><h3>TERMS YOU'LL PROBABLY HEAR</h3><ul className="brief-terms">{glossaryTerms.map((term) => <li key={term}><button onClick={() => onOpenVocabulary(term)} type="button">{term}</button></li>)}</ul></article>
       </div>
     </section>
   </div>
@@ -722,6 +723,7 @@ function AlertsPage({ preferences, setPreferences, history, clearHistory, driver
 
 function Formula1Hub({ onBack }: { onBack: () => void }): React.JSX.Element {
   const [page, setPage] = useState<HubPage>('watch')
+  const [selectedVocabularyTerm, setSelectedVocabularyTerm] = useState<string | null>(null)
   const { data, driverStandings, loading, availabilityMessage } = useF1Data()
   const [preferences, setPreferences] = useState<AlertPreferences>(() => loadAlertPreferences())
   const [history, setHistory] = useState<RaceAlert[]>(() => loadAlertHistory())
@@ -738,6 +740,10 @@ function Formula1Hub({ onBack }: { onBack: () => void }): React.JSX.Element {
   const clearHistory = (): void => {
     setHistory([])
     saveAlertHistory([])
+  }
+  const openVocabulary = (term: string): void => {
+    setSelectedVocabularyTerm(term)
+    setPage('vocabulary')
   }
   useRaceAlerts(preferences, data.raceState, history, setHistory)
   useRaceAlerts(replayPreferences, alertReplay.state, history, setHistory)
@@ -784,7 +790,7 @@ function Formula1Hub({ onBack }: { onBack: () => void }): React.JSX.Element {
   return <main className="f1-hub-shell">
     <HubSidebar page={page} onBack={onBack} onNavigate={setPage} />
     <section className="f1-hub-main">
-      {availabilityMessage && page !== 'watch' ? <p className="hub-data-notice" role="status">{availabilityMessage}</p> : null}
+      {availabilityMessage && page !== 'watch' && page !== 'vocabulary' ? <p className="hub-data-notice" role="status">{availabilityMessage}</p> : null}
       {page === 'watch' ? <WatchPage
         brief={raceBrief}
         briefLoading={raceBriefLoading}
@@ -793,6 +799,10 @@ function Formula1Hub({ onBack }: { onBack: () => void }): React.JSX.Element {
         preferences={preferences}
         setPreferences={setPreferences}
         unavailable={availabilityMessage !== null}
+        onOpenVocabulary={openVocabulary}
+      /> : page === 'vocabulary' ? <Formula1VocabularyPage
+        onSelectTerm={setSelectedVocabularyTerm}
+        selectedTerm={selectedVocabularyTerm}
       /> : loading ? <p className="hub-loading">Loading race data…</p> : <>
         {page === 'stats' && <Formula1StatsPage defaultSeason={data.currentOrNext?.year ?? null} seasons={data.seasons} />}
         {page === 'alerts' && <AlertsPage

@@ -13,6 +13,15 @@ Use ONLY the supplied facts.
 Your job is not to summarize the dataset.
 Select the few facts that make the upcoming race easiest and most interesting to understand.
 
+For WHY, answer this question: "What could meaningfully change because of this race?"
+Write 1-2 concise sentences explaining the competitive stakes of THIS race for a newcomer.
+Use concrete supplied standings gaps and recent results whenever they support a consequence, such as a lead increasing or shrinking, a close fight for a position, teammates competing, or an opportunity to recover after recent results.
+
+Do NOT merely state who leads the championship, that the race is important, or that a driver has many points or wins. Explain the consequence.
+
+BAD: "This race matters because Antonelli leads the championship."
+BETTER: "Antonelli has room at the top, but the fight behind him is tighter. A strong result could let Russell strengthen second while Hamilton and Norris remain close behind."
+
 Never invent circuit characteristics, weather, strategy, rivalry, probabilities, historical facts, or championship scenarios.
 
 Keep language simple and concise.
@@ -20,7 +29,7 @@ Keep language simple and concise.
 Return exactly these sections:
 
 WHY:
-1-2 short sentences explaining why this race matters right now.
+1-2 short sentences explaining what could meaningfully change because of this race.
 
 WATCH:
 - 2 or 3 short things worth watching based only on supplied facts.
@@ -131,6 +140,12 @@ function usefulWhy(value: string): string | null {
   return why && !isGeneric(why) && !isTableLike(why) ? why : null
 }
 
+function isTautologicalWhy(value: string): boolean {
+  const leaderRestatement = /(?:this race (?:matters|is important) because\b.*\b(?:leads|is leading)\b|^[^.?!]+\b(?:leads|is leading) the championship\b)/i.test(value)
+  const consequence = /\b(?:could|can|chance|opportunit|extend|increase|shrink|close|catch|overtake|move|strengthen|recover|gain|lose|fight|battle|within|gap|separat|behind|ahead|position|teammate|constructor)\w*\b/i.test(value)
+  return leaderRestatement && !consequence
+}
+
 function parseBrief(content: string, allowedDrivers: Map<string, DriverFact>): {
   brief: F1RaceBrief | null
   why: boolean
@@ -228,23 +243,43 @@ export class RaceBriefService {
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS)
     try {
       const facts = compactFacts(input)
-      const userMessage = `${JSON.stringify(facts, null, 2)}\n\nReturn only WHY:, WATCH:, and DRIVERS: in the exact format requested by the system message.`
-      const messages: AzureFoundryChatMessage[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage }
-      ]
-      const completion = await this.client.complete(this.model, messages, 240, 0.15, controller.signal)
-      if (completion.finishReason && completion.finishReason !== 'stop') {
-        throw new Error(`response ended with ${completion.finishReason}`)
-      }
-      const content = completion.content
-      console.debug(`[race-brief] raw=${JSON.stringify(content)}`)
       const allowedDrivers = new Map(facts.championship.map((driver) => [
         driver.driver.toLocaleLowerCase('en-US'),
         driver
       ]))
-      const parsed = parseBrief(content, allowedDrivers)
-      console.debug(`[race-brief] parsed why=${parsed.why} watch=${parsed.watch} drivers=${parsed.drivers}`)
+      const complete = async (retry = false): Promise<ReturnType<typeof parseBrief>> => {
+        const retryInstruction = retry
+          ? '\n\nThe previous WHY only restated who leads. Rewrite it to explain what could meaningfully change because of this race, using only the supplied facts.'
+          : ''
+        const userMessage = `${JSON.stringify(facts, null, 2)}\n\nReturn only WHY:, WATCH:, and DRIVERS: in the exact format requested by the system message.${retryInstruction}`
+        const messages: AzureFoundryChatMessage[] = [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userMessage }
+        ]
+        const completion = await this.client.complete(this.model, messages, 240, 0.15, controller.signal)
+        if (completion.finishReason && completion.finishReason !== 'stop') {
+          throw new Error(`response ended with ${completion.finishReason}`)
+        }
+        console.debug(`[race-brief] raw=${JSON.stringify(completion.content)}`)
+        const parsed = parseBrief(completion.content, allowedDrivers)
+        console.debug(`[race-brief] parsed why=${parsed.why} watch=${parsed.watch} drivers=${parsed.drivers}`)
+        return parsed
+      }
+
+      let parsed = await complete()
+      if (parsed.brief?.whyThisRaceMatters && isTautologicalWhy(parsed.brief.whyThisRaceMatters)) {
+        console.debug('[race-brief] retrying: WHY restated standings without a consequence')
+        const retry = await complete(true)
+        if (retry.brief?.whyThisRaceMatters && !isTautologicalWhy(retry.brief.whyThisRaceMatters)) {
+          parsed = retry
+        } else {
+          parsed = {
+            ...parsed,
+            brief: { ...parsed.brief, whyThisRaceMatters: '' },
+            why: false
+          }
+        }
+      }
       if (!parsed.brief) throw new Error('fewer than two useful brief sections were recovered')
       console.debug(`[race-brief] ready grandPrix=${input.target.grandPrix}`)
       return parsed.brief

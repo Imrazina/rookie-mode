@@ -13,10 +13,9 @@ html.overlay-window, html.overlay-window body, html.overlay-window #root { width
 .hub-brand { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 800; letter-spacing: .18em; }
 .f1-hub-sidebar > div > p { margin: 9px 0 0 26px; color: #777e86; font-size: 9px; font-weight: 700; letter-spacing: .17em; }
 .f1-hub-sidebar nav { display: flex; flex-direction: column; gap: 7px; margin-top: 68px; }
-.f1-hub-sidebar nav button, .hub-settings { padding: 13px 14px; border: 0; border-left: 2px solid transparent; background: transparent; color: #7f858d; cursor: pointer; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .13em; }
+.f1-hub-sidebar nav button { padding: 13px 14px; border: 0; border-left: 2px solid transparent; background: transparent; color: #7f858d; cursor: pointer; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .13em; }
 .f1-hub-sidebar nav button:hover { color: #f5f5f2; }
 .f1-hub-sidebar nav button.is-active { border-left-color: #d7ff43; background: rgba(215,255,67,.055); color: #d7ff43; }
-.hub-settings { margin-top: auto; cursor: default; opacity: .55; }
 .f1-hub-main { overflow-y: auto; background: radial-gradient(ellipse 65% 50% at 100% 0,rgba(215,255,67,.04),transparent 66%),#0c0e12; }
 .hub-page { width: min(100% - 72px,900px); margin: 0 auto; padding: 55px 0 72px; }
 .hub-page-heading p, .watch-hero > p { margin: 0 0 10px; color: #d7ff43; font-size: 9px; font-weight: 800; letter-spacing: .17em; }
@@ -163,7 +162,41 @@ html.overlay-window, html.overlay-window body, html.overlay-window #root { width
 .brief-drivers { gap: 8px; }
 .brief-drivers li { gap: 2px; }
 .brief-terms { gap: 8px; }
-.brief-terms li { width: fit-content; padding: 6px 8px; border: 1px solid #3a4237; background: rgba(215,255,67,.035); color: #d9ded6; font-size: 9px; letter-spacing: .08em; }
+.brief-terms li { width: fit-content; }
+.brief-terms button { padding: 6px 8px; border: 1px solid #3a4237; background: rgba(215,255,67,.035); color: #d9ded6; cursor: pointer; font: inherit; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+.brief-terms button:hover, .brief-terms button:focus-visible { border-color: #d7ff43; color: #d7ff43; outline: none; }
+
+/* Formula 1 vocabulary */
+.vocabulary-page { width: min(100% - 96px, 980px); }
+.vocabulary-heading h1 { margin-bottom: 8px; }
+.vocabulary-heading > span { display: block; margin-bottom: 34px; color: #8f9690; font-size: 13px; }
+.vocabulary-search { display: grid; gap: 8px; }
+.vocabulary-search > span { color: #7f8780; font-size: 9px; font-weight: 800; letter-spacing: .15em; }
+.vocabulary-search input { width: 100%; min-height: 48px; padding: 0 15px; border: 1px solid #363c38; border-radius: 0; outline: none; background: #101318; color: #f5f5f2; font: inherit; font-size: 13px; }
+.vocabulary-search input::placeholder { color: #69706b; }
+.vocabulary-search input:focus { border-color: #d7ff43; }
+.vocabulary-detail { margin-top: 22px; padding: 23px 25px; border: 1px solid #4a5730; outline: none; background: #151a13; }
+.vocabulary-detail:focus-visible { border-color: #d7ff43; }
+.vocabulary-detail > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.vocabulary-detail > div > span { color: #d7ff43; font-size: 9px; font-weight: 800; letter-spacing: .15em; }
+.vocabulary-detail button { padding: 3px 0; border: 0; background: transparent; color: #8f978e; cursor: pointer; font: inherit; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+.vocabulary-detail button:hover, .vocabulary-detail button:focus-visible { color: #d7ff43; outline: none; }
+.vocabulary-detail h2 { margin: 23px 0 8px; font-size: 24px; letter-spacing: -.035em; }
+.vocabulary-detail p { max-width: 650px; margin: 0; color: #cbd0c8; font-size: 13px; line-height: 1.5; }
+.vocabulary-detail small { display: block; margin-top: 15px; color: #7f8780; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.vocabulary-results { margin-top: 42px; }
+.vocabulary-results-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+.vocabulary-results-heading h2 { margin: 0; font-size: 11px; letter-spacing: .15em; }
+.vocabulary-results-heading span { color: #747c75; font-size: 10px; }
+.vocabulary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #2a2f2b; }
+.vocabulary-grid button { display: grid; gap: 7px; min-height: 106px; padding: 20px 24px 20px 0; border: 0; border-bottom: 1px solid #2a2f2b; background: transparent; color: inherit; cursor: pointer; text-align: left; }
+.vocabulary-grid button:nth-child(odd) { padding-right: 30px; border-right: 1px solid #2a2f2b; }
+.vocabulary-grid button:nth-child(even) { padding-left: 30px; }
+.vocabulary-grid button:hover strong, .vocabulary-grid button:focus-visible strong, .vocabulary-grid button.is-selected strong { color: #d7ff43; }
+.vocabulary-grid button:focus-visible { outline: 1px solid #d7ff43; outline-offset: -1px; }
+.vocabulary-grid strong { color: #f5f5f2; font-size: 12px; letter-spacing: .06em; }
+.vocabulary-grid span { color: #969d96; font-size: 11px; line-height: 1.45; }
+.vocabulary-empty { margin: 0; padding: 28px 0; border-top: 1px solid #2a2f2b; color: #7f8780; font-size: 12px; }
 
 .alerts-page .hub-page-heading h1 { margin-bottom: 12px; }
 .alert-race-context { margin: 0 0 28px; color: #8f978e; font-size: 12px; }
@@ -202,6 +235,9 @@ html.overlay-window, html.overlay-window body, html.overlay-window #root { width
   .alert-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .followed-drivers-heading { align-items: flex-start; flex-direction: column; }
   .followed-drivers-heading select { width: 100%; }
+  .vocabulary-page { width: min(100% - 40px, 980px); }
+  .vocabulary-grid { grid-template-columns: 1fr; }
+  .vocabulary-grid button, .vocabulary-grid button:nth-child(odd), .vocabulary-grid button:nth-child(even) { padding: 18px 0; border-right: 0; }
 }
 
 /* Focused overlay cleanup */
